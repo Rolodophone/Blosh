@@ -4,41 +4,65 @@ import android.graphics.Color
 import android.graphics.RectF
 import net.rolodophone.core.*
 
-class Player(private val window: GameWindow) {
+object Player {
 
     val w = w(25)
     val h = w(50)
+    val defaultX = w(60)
+    val defaultY = Ground.h - h
+    val runSpeed = w(150)
 
-    val dim = RectF(w(60), window.ground.h - h, w(60) + w, window.ground.h)
+    val dim = RectF(defaultX, defaultY, defaultX + w, defaultY + h)
     var velocityX = 0f
     var velocityY = 0f
     var accelerationY = 0f
 
-    var isOnGround = true
+    var onGround = true
+    var punching = false
 
     fun update() {
         velocityY += accelerationY / fps
         dim.offset(velocityX / fps, velocityY / fps)
 
         // reset velocity etc when character lands
-        if (dim.bottom > window.ground.h) {
-            dim.offsetTo(dim.left, window.ground.h - h)
+        if (dim.bottom > Ground.h) {
+            dim.offsetTo(dim.left, defaultY)
             velocityY = 0f
             accelerationY = 0f
-            isOnGround = true
+            onGround = true
+        }
+
+        // go back to usual place after punching etc
+        if (dim.left > defaultX + w(60)) {
+            velocityX = -w(200)
+        }
+
+        // finish going back to usual place
+        else if (dim.left < defaultX) {
+            velocityX = 0f
         }
     }
 
     fun draw() {
         paint.color = Color.GRAY
         canvas.drawRect(dim, paint)
+        if (punching) canvas.drawRect(dim.right, dim.top + w(13), dim.right + w(25), dim.top + w(18), paint)
     }
 
     fun jump() {
-        if (isOnGround) {
+        if (onGround) {
             accelerationY = w(1000)
             velocityY = -w(400)
-            isOnGround = false
+            onGround = false
         }
+    }
+
+    fun advance() {
+        velocityX = w(600)
+    }
+
+    fun punch() {
+        punching = true
+        timers.add(Timer(0.5f) { punching = false })
     }
 }

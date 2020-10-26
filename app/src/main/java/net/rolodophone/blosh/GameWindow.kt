@@ -3,35 +3,53 @@ package net.rolodophone.blosh
 import android.graphics.RectF
 import net.rolodophone.core.*
 import kotlin.math.abs
+import kotlin.random.Random.Default.nextInt
+
+val entities = mutableListOf<Entity>()
+val timers = mutableListOf<Timer>()
 
 class GameWindow(ctx: MainActivityCore): Window(ctx) {
-
-    val background = Background(this)
-    val ground = Ground(this)
-    val player = Player(this)
 
     private val leftSeekable = object: Seekable(RectF(0f, 0f, width/2, height)) {
         override fun onFling(vx: Float, vy: Float) {
             when {
-                // fling up - jump
-                vy < 0 && -vy > abs(vx) -> player.jump()
+                vy < 0 && -vy > abs(vx) -> Player.jump() // fling up
+                vx > 0 && vx > abs(vy) -> Player.advance() // fling right
             }
         }
         override fun onSeek(x: Float, y: Float) {}
         override fun onStopSeek() {}
     }
 
+    private val rightButton = Button(RectF(width/2, 0f, width, height)) {
+        Player.punch()
+    }
+
+    override val downButtons = mutableListOf(rightButton)
     override val seekables = listOf<Seekable>(leftSeekable)
 
     override fun update() {
-        player.update()
+        Player.update()
+        for (entity in entities) entity.update()
+        for (button in downButtons) button.update()
         for (seekable in seekables) seekable.update()
+
+        // spawn entities
+        when {
+            nextInt((5 * fps).toInt()) == 0 -> entities.add(Zombie())
+        }
+
+        //update timers
+        for (timer in timers) timer.update()
+        timers.removeAll { it.timeLeft < 0f }
     }
 
     override fun draw() {
-        background.draw()
-        ground.draw()
-        player.draw()
+        Background.draw()
+        Ground.draw()
+        Player.draw()
+        for (entity in entities) entity.draw()
+        for (button in downButtons) button.draw()
         for (seekable in seekables) seekable.draw()
     }
 }
