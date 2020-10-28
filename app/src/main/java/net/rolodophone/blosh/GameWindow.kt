@@ -13,8 +13,9 @@ class GameWindow(ctx: MainActivityCore): Window(ctx) {
     private val leftSeekable = object: Seekable(RectF(0f, 0f, width/2, height)) {
         override fun onFling(vx: Float, vy: Float) {
             when {
-                vy < 0 && -vy > abs(vx) -> Player.jump() // fling up
+                vy < 0 && -vy > abs(vx) -> Player.jumpIfOnGround() // fling up
                 vx > 0 && vx > abs(vy) -> Player.advance() // fling right
+                vy > 0 && vy > abs(vx) -> Player.rollOrDrop() // fling down
             }
         }
         override fun onSeek(x: Float, y: Float) {}
@@ -40,8 +41,9 @@ class GameWindow(ctx: MainActivityCore): Window(ctx) {
         }
 
         //update timers
+        timers.removeAll { it.timeLeft == 0f } // remove timers that were finished early by the player or the entities
         for (timer in timers) timer.update()
-        timers.removeAll { it.timeLeft < 0f }
+        timers.removeAll { it.timeLeft == 0f } // remove timers that were finished because they reached 0
     }
 
     override fun draw() {

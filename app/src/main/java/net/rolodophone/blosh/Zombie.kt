@@ -7,8 +7,8 @@ import net.rolodophone.core.*
 class Zombie: Entity() {
 
     companion object {
-        val w = Player.w
-        val h = Player.h
+        val w = Player.defaultW
+        val h = Player.defaultH
         val velocity = -w(50)
     }
 
@@ -16,6 +16,7 @@ class Zombie: Entity() {
 
     override fun update() {
         super.update()
+
         dim.offset(velocity / fps, 0f)
     }
 
